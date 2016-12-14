@@ -2,7 +2,7 @@
 
 Log-periodic power law (LPPL) type behavior is interesting for a number of
 reasons.  There is a
-certain amount of emperical evidence and belief that it is fundamental
+certain amount of empirical evidence and belief that it is fundamental
 to many critical phenomena -- material rupture, earthquakes, and financial
 bubbles, to name a few.  For a bit of background see the [docs](docs/) and
 follow the references!
@@ -19,7 +19,7 @@ can be seen [here](images/lppl_curve_fit_fit.png).  Additionally there is the
 curious feature that, if we attempt
 to fit a least squares slightly away from the true parameter values, we still
 may never find the global minimum, or the best fit.  This can be seen in
-the following graph, where the paramters are
+the following graph, where the parameters are
 
 ```
 	p_true = {20, 2, 1, -2, 0.5, 3.0}
