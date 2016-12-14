@@ -14,7 +14,9 @@ Here we consider the following generic log-periodic model:
 ## Non-linear fitting vs. Heuristic fitting
 
 Interestingly, LPPL is in a class of functions which have many local minima,
-when attempting to fit. This results in the curious case that, if we attempt
+when attempting to fit. This means that generic fits are pretty terrible, as
+can be seen [here](images/lppl_curve_fit_fit.png).  Additionally there is the
+curious feature that, if we attempt
 to fit a least squares slightly away from the true parameter values, we still
 may never find the global minimum, or the best fit.  This can be seen in
 the following graph, where the paramters are
