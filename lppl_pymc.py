@@ -1,3 +1,18 @@
+'''
+    Author: Dylan Albrecht
+    Date: December 13th, 2016
+
+    This script fits a generic log-periodic function as from (e.g.):
+
+    https://arxiv.org/abs/cond-mat/0201458v1
+
+    * Uses pyMC MCMC sampling to converge on a solution, providing parameter
+      statistics, in addition.
+    * As a demonstration, fits fake data in the main block.
+
+    * Sensitive to prior distribution and hyperparameters for:
+      o, m, A, C, tau
+'''
 import pymc as pm
 import numpy as np
 import scipy.stats as scs
