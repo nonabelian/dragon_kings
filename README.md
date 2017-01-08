@@ -9,7 +9,7 @@ follow the references!
 
 Here we consider the following generic log-periodic model:
 
-
+![LPPL Equation](images/lppl_equation.png)
 
 ## Non-linear fitting vs. Heuristic fitting
 
