@@ -85,11 +85,19 @@ if __name__ == '__main__':
     model = pm.Model()
 
     with model:
+        # Setting initial points to basinhopping results
         o = pm.Normal('o', mu=o_b, sd=10)
         m = pm.Normal('m', mu=m_b, sd=10)
         A = pm.Normal('A', mu=A_b, sd=10)
         C = pm.Normal('C', mu=C_b, sd=10)
         t = pm.Normal('t', mu=t_b, sd=10)
+
+        # Or try with curve fit initial points
+        # o = pm.Normal('o', mu=21.0, sd=10)
+        # m = pm.Normal('m', mu=md, sd=10)
+        # A = pm.Normal('A', mu=Ad, sd=10)
+        # C = pm.Normal('C', mu=Cd, sd=10)
+        # t = pm.Normal('t', mu=td, sd=10)
 
         y_mu = A + t**m * xd**m + C * t**m * xd**m * np.cos(o * np.log(xd))
         y_sd = pm.HalfNormal('y_sd', sd=10)
