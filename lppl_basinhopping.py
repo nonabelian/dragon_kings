@@ -85,7 +85,7 @@ class MyStepper(object):
             x[4] += inc
 
         return x
-        
+
 
 class MyBounds(object):
     ''' This class implements a set of reasonable bounds (depends on units and
@@ -159,20 +159,18 @@ if __name__ == '__main__':
     ################
     # Show results!
 
-    print "Global Minimum: E(params_fit) = {}".format(ret.fun)
-    print "Params: params_fit = [{0}, {1}, {2}, {3}, {4}]".format(*ret.x)
+    print("Global Minimum: E(params_fit) = {}".format(ret.fun))
+    print("Params: params_fit = [{0}, {1}, {2}, {3}, {4}]".format(*ret.x))
 
-    print "Percent Differences: "
+    print("Percent Differences: ")
     for pf, (pn, pa) in zip(ret.x, panswer):
-        print "{0}: {1:0.2f}%".format(pn, (pa - pf) / pa * 100.0)
+        print("{0}: {1:0.2f}%".format(pn, (pa - pf) / pa * 100.0))
 
     plt.scatter(xd, yd)
     plt.plot(xd, y(xd, *ret.x), c='r')
 
     fname = "lppl_basinhopping_fit.png"
-
     save_file = os.path.join('images', fname)
-
     plt.savefig(save_file)
 
     plt.show()

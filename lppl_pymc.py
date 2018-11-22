@@ -13,10 +13,16 @@
     * Sensitive to prior distribution and hyperparameters for:
       o, m, A, C, tau
 '''
-import pymc as pm
+import os
+
+import pymc3 as pm
 import numpy as np
 import scipy.stats as scs
+from scipy.optimize import basinhopping
 import matplotlib.pyplot as plt
+
+from lppl_basinhopping import MyStepper
+from lppl_basinhopping import MyBounds
 
 
 # Log periodic function, as per https://arxiv.org/abs/cond-mat/0201458v1
@@ -47,71 +53,64 @@ if __name__ == '__main__':
     yd = y(xd, od, md, Ad, Cd, td) \
          + scs.norm(0, noise).rvs(size=num_data_points)
 
+    def E_func(params):
+        ret = y(xd, params[0], params[1], params[2], params[3],
+                params[4])
+
+        n = float(len(ret))
+        er = (ret - yd).dot(ret - yd) / n
+
+        if np.isnan(er):
+            er = 1e10
+
+        return er
+
+    p0 = [1.0, 1.0, 1.0, 1.0, 1.0]
+
+    # Step size can greatly affect the solution/convergence.
+    mystep = MyStepper(0.1)
+    mybound = MyBounds()
+
+    ret = basinhopping(E_func, p0, take_step=mystep, accept_test=mybound)
+
+    o_b = ret['x'][0]
+    m_b = ret['x'][1]
+    A_b = ret['x'][2]
+    C_b = ret['x'][3]
+    t_b = ret['x'][4]
+
     #############
-    # PyMC Model
-#    o_sd = 40.0
-#    o_tau = 1 / o_sd**2
-#    m_sd = 5.0
-#    m_tau = 1 / m_sd**2
-#    A_sd = 200.0
-#    A_tau = 1 / A_sd**2
-#    C_sd = 200.0
-#    C_tau = 1 / C_sd**2
-#    t_sd = 40.0
-#    t_tau = 1 / t_sd**2
+    # PyMC3 Model
 
-    o_sd = 10.0
-    o_tau = 1 / o_sd**2
-    m_sd = 10.0
-    m_tau = 1 / m_sd**2
-    A_sd = 10.0
-    A_tau = 1 / A_sd**2
-    C_sd = 10.0
-    C_tau = 1 / C_sd**2
-    t_sd = 10.0
-    t_tau = 1 / t_sd**2
+    model = pm.Model()
 
-    o = pm.Uniform('o', lower=0, upper=200)
-    m = pm.Uniform('m', lower=-10, upper=10)
-    A = pm.Uniform('A', lower=-1e4, upper=1e4)
-    C = pm.Uniform('C', lower=-1e4, upper=1e4)
-    t = pm.Uniform('t', lower=1e-5, upper=200)
+    with model:
+        o = pm.Normal('o', mu=o_b, sd=10)
+        m = pm.Normal('m', mu=m_b, sd=10)
+        A = pm.Normal('A', mu=A_b, sd=10)
+        C = pm.Normal('C', mu=C_b, sd=10)
+        t = pm.Normal('t', mu=t_b, sd=10)
 
-#    o = pm.HalfNormal('o', tau=o_tau)
-#    m = pm.Normal('m', mu=0.0, tau=m_tau)
-#    A = pm.Normal('A', mu=0.0, tau=A_tau)
-#    C = pm.Normal('C', mu=0.0, tau=C_tau)
-#    t = pm.HalfNormal('t', tau=t_tau)
+        y_mu = A + t**m * xd**m + C * t**m * xd**m * np.cos(o * np.log(xd))
+        y_sd = pm.HalfNormal('y_sd', sd=10)
 
-    @pm.deterministic
-    def y_mu(o=o, m=m, A=A, C=C, t=t):
-        ret = A + t**m * xd**m + C * t**m * xd**m * np.cos(o * np.log(xd))
+        y_obs = pm.Normal('y_obs', mu=y_mu, sd=y_sd, observed=yd)
 
-    y_sd = pm.HalfNormal('y_sd', tau=1)
-    y_tau = 1/y_sd**2
+        trace = pm.sample(tune=1000)
 
-    y_obs = pm.Normal('y_obs', mu=y_mu, tau=y_tau, value=yd, observed=True)
+    ppc = pm.sample_ppc(trace, model=model)
+    y_model = ppc['y_obs']
 
-    model = pm.Model([y_obs, y_mu, y_sd, t, C, A, m, o])
+    fig = plt.figure(figsize=(12,8))
+    ax = fig.add_subplot(111)
+    for row in y_model:
+        ax.scatter(xd, row, color='blue', alpha=0.01)
 
-    mcmc = pm.MCMC(model)
-    mcmc.sample(iter=200000, burn=10000, thin=10)
+    ax.scatter(xd, yd, color='black', alpha=0.5)
 
-    osamp = mcmc.trace('o')[:]
-    msamp = mcmc.trace('m')[:]
+    fname = "lppl_basinhopping_plus_pymc3_fit.png"
+    save_file = os.path.join('images', fname)
+    plt.savefig(save_file)
 
-    plt.figure(figsize=(10,10))
-    plt.plot(osamp, alpha=0.75, c='b')
-    plt.plot(msamp, alpha=0.75, c='r')
-    
-    plt.figure(figsize=(10,10))
-    plt.scatter(xd, yd)
-    
-    fig = plt.figure(figsize=(10,10))
-    ax = fig.add_subplot(211)
-    plt.hist(osamp, bins=25, alpha=0.5)
-    ax = fig.add_subplot(212)
-    plt.hist(msamp, bins=25, alpha=0.5)
     plt.show()
-
 
